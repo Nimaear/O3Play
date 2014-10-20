@@ -1,0 +1,24 @@
+## Interface: 60000
+## DefaultState: Enabled
+## Title: |cFF007FFFO3|r Class Powers
+## Author: Oz
+## Version: 0.1
+## Notes: O3 Class Power
+## RequiredDeps: O3
+
+
+
+PowerDisplay.lua
+SecondaryPowerDisplay.lua
+BuffStackDisplay.lua
+
+Play.lua
+SpellBar.lua
+ProcIcon.lua
+Classes\Monk.lua
+Classes\Rogue.lua
+Classes\Warlock.lua
+Classes\DeathKnight.lua
+Classes\Paladin.lua
+Classes\Hunter.lua
+Classes\Paladin.lua
