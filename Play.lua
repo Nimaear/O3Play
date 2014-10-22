@@ -36,9 +36,11 @@ ns.Play = O3:module({
 			end
 		end
 		self.specId = GetSpecialization()
-		control = self:getSpecControl(self.specId)
-		if (control) then
-			control:enable()
+		if (self.specId) then
+			control = self:getSpecControl(self.specId)
+			if (control) then
+				control:enable()
+			end
 		end
 	end,
 	createSpecControl = function (self, specId)
