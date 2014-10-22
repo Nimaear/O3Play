@@ -24,6 +24,10 @@ ns.PowerDisplay = O3.Class:extend({
 		end
 		if (self.comboPoints) then
 			self:registerNormalEvent('UNIT_COMBO_POINTS')
+			self:registerNormalEvent('PLAYER_TARGET_CHANGED')
+			if (self.class == 'DRUID') then
+				self:registerNormalEvent('UPDATE_SHAPESHIFT_FORM')
+			end
 			self.comboPoints:UNIT_COMBO_POINTS()
 		end
 		if (self.runes) then
@@ -94,6 +98,13 @@ ns.PowerDisplay = O3.Class:extend({
 	UNIT_COMBO_POINTS = function (self)
 		self.comboPoints:UNIT_COMBO_POINTS()
 	end,
+	UPDATE_SHAPESHIFT_FORM = function (self)
+		self:UNIT_MAXPOWER()
+		self.comboPoints:UNIT_COMBO_POINTS()
+	end,
+	PLAYER_TARGET_CHANGED = function (self)
+		self.comboPoints:UNIT_COMBO_POINTS()
+	end,
 	RUNE_TYPE_UPDATE = function (self)
 		self.runes:RUNE_TYPE_UPDATE()
 	end,
@@ -121,6 +132,8 @@ ns.PowerDisplay = O3.Class:extend({
 	postCreate = function(self)
 	end,
 	PLAYER_ENTERING_WORLD = function (self)
+		local _, class = UnitClass('player')
+		self.class = class
 		self:create()
 		self:postCreate()
 		self.frame:UnregisterEvent('PLAYER_ENTERING_WORLD')
