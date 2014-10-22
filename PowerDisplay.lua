@@ -10,6 +10,7 @@ ns.PowerDisplay = O3.Class:extend({
 	comboPoints = false,
 	runes = false,
 	horizontalOffset = -290,
+	auraWatchers = {},
 	events = {
 		UNIT_POWER_FREQUENT = true,
 		UNIT_MAXPOWER = true,
@@ -89,11 +90,16 @@ ns.PowerDisplay = O3.Class:extend({
 		self._events[event][object] = true
 	end,
 	registerUnitAuraWatcher = function (self, watcher)
-		self.events.UNIT_AURA = true
-		self.UNIT_AURA = function (self)
-			watcher:UNIT_AURA()
+		if (not self.events.aura) then
+			self.events.UNIT_AURA = true
+			self:registerEvent('UNIT_AURA')
 		end
-		self:registerEvent('UNIT_AURA')
+		table.insert(self.auraWatchers, watcher)
+	end,
+	UNIT_AURA = function (self)
+		for i = 1, #self.auraWatchers do
+			self.auraWatchers[i]:UNIT_AURA()
+		end
 	end,
 	UNIT_COMBO_POINTS = function (self)
 		self.comboPoints:UNIT_COMBO_POINTS()
