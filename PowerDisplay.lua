@@ -105,7 +105,7 @@ ns.PowerDisplay = O3.Class:extend({
 		self.comboPoints:UNIT_COMBO_POINTS()
 	end,
 	UPDATE_SHAPESHIFT_FORM = function (self)
-		self:UNIT_MAXPOWER()
+		self:UNIT_MAXPOWER('player', self.powerType)
 		self.comboPoints:UNIT_COMBO_POINTS()
 	end,
 	PLAYER_TARGET_CHANGED = function (self)
