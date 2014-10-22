@@ -51,7 +51,7 @@ ns.Play:registerControl(ns.PowerDisplay:extend({
 	end,
 }))
 
-ns.PowerDisplay:extend({
+ns.Play:registerControl(ns.PowerDisplay:extend({
 	specId = BALANCE,
 	powerType = 'ENERGY',
 	comboPoints = true,
@@ -62,4 +62,4 @@ ns.PowerDisplay:extend({
 		self.comboPoints:point('BOTTOM', self.frame, 'TOP', 0, -1)
 		self.frame:SetPoint('TOP', UIParent, 'CENTER', 0, self.horizontalOffset)
 	end,
-})
+}))
