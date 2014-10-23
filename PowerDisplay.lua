@@ -111,7 +111,7 @@ ns.PowerDisplay = O3.Class:extend({
 			width = self.width,
 			height = self.height,
 			style = function (panel)
-				panel:createTexture({
+				self.bg = panel:createTexture({
 					layer = 'BACKGROUND',
 					subLayer = -7,
 					file = self.texture,
@@ -134,6 +134,7 @@ ns.PowerDisplay = O3.Class:extend({
 		self.frame:UnregisterEvent('PLAYER_ENTERING_WORLD')
 	end,
 	create = function (self)
+
 		if (self.powerType == 'ENERGY') then
 			self.regenBar = O3.UI.StatusBar:instance({
 				parentFrame = self.frame,
@@ -160,12 +161,13 @@ ns.PowerDisplay = O3.Class:extend({
 				bar.text = bar:createFontString({
 					offset = {4, 4, 0, 0},
 					color = {0.9, 0.9, 0.9, 1},
-					shadowColor = {0.5, 0.5, 0.5, 1},
+					--shadowColor = {0.5, 0.5, 0.5, 1},
 					shadowOffset = {1, -1},
 					justifyH = 'CENTER',
 				})
 			end,
 		})
+		self.bg:SetVertexColor(color.r/2, color.g/2, color.b/2)
 		self.text = self.bar.text
 	end,
 })
