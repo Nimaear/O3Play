@@ -7,11 +7,11 @@ ns.PowerDisplay = O3.Class:extend({
 	texture = O3.Media:statusBar('Stone'),
 	powers = {},
 	secondaryPower = nil,
-	comboPoints = false,
 	runes = false,
 	horizontalOffset = -290,
 	auraWatchers = {},
 	events = {
+		UNIT_POWER = true,
 		UNIT_POWER_FREQUENT = true,
 		UNIT_MAXPOWER = true,
 	},
@@ -23,14 +23,7 @@ ns.PowerDisplay = O3.Class:extend({
 		if (self.secondaryPower) then
 			self:UNIT_MAXPOWER('player', self.secondaryPower.powerString)
 		end
-		if (self.comboPoints) then
-			self:registerNormalEvent('UNIT_COMBO_POINTS')
-			self:registerNormalEvent('PLAYER_TARGET_CHANGED')
-			if (self.class == 'DRUID') then
-				self:registerNormalEvent('UPDATE_SHAPESHIFT_FORM')
-			end
-			self.comboPoints:UNIT_COMBO_POINTS()
-		end
+		self:registerNormalEvent('UPDATE_SHAPESHIFT_FORM')
 		if (self.runes) then
 			self:registerNormalEvent('RUNE_TYPE_UPDATE')
 			self:registerNormalEvent('RUNE_POWER_UPDATE')
@@ -59,7 +52,10 @@ ns.PowerDisplay = O3.Class:extend({
 				end
 			end
 
-		elseif self.secondaryPower and powerType == self.secondaryPower.powerString then
+		end
+	end,
+	UNIT_POWER = function (self, unit, powerType)
+		if self.secondaryPower and powerType == self.secondaryPower.powerString then
 			self.secondaryPower:UNIT_POWER()
 		end
 	end,
@@ -101,15 +97,8 @@ ns.PowerDisplay = O3.Class:extend({
 			self.auraWatchers[i]:UNIT_AURA()
 		end
 	end,
-	UNIT_COMBO_POINTS = function (self)
-		self.comboPoints:UNIT_COMBO_POINTS()
-	end,
 	UPDATE_SHAPESHIFT_FORM = function (self)
 		self:UNIT_MAXPOWER('player', self.powerType)
-		self.comboPoints:UNIT_COMBO_POINTS()
-	end,
-	PLAYER_TARGET_CHANGED = function (self)
-		self.comboPoints:UNIT_COMBO_POINTS()
 	end,
 	RUNE_TYPE_UPDATE = function (self)
 		self.runes:RUNE_TYPE_UPDATE()

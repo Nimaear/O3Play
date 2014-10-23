@@ -1,5 +1,7 @@
 local addon, ns = ...
 
+local SPELL_POWER_COMBO_POINTS = 4
+
 ns.SecondaryPowerDisplay = O3.UI.Panel:extend({
 	maxAmount = 5,
 	width = 181,
@@ -13,6 +15,7 @@ ns.SecondaryPowerDisplay = O3.UI.Panel:extend({
 	multiplier = 1,
 	detailed = false,
 	_lookup = {
+		[SPELL_POWER_COMBO_POINTS] = 'COMBO_POINTS',
 		[SPELL_POWER_CHI] = 'CHI',
 		[SPELL_POWER_HOLY_POWER] = 'HOLY_POWER',
 		[SPELL_POWER_DEMONIC_FURY] = 'DEMONIC_FURY',
@@ -121,14 +124,4 @@ ns.EmberDisplay = ns.SecondaryPowerDisplay:extend({
 	color = {0.9, 0.45, 0.1, 1},
 	powerType = SPELL_POWER_BURNING_EMBERS,
 	detailed = true,
-})
-
-ns.ComboPointDisplay = ns.SecondaryPowerDisplay:extend({
-	UNIT_COMBO_POINTS = function (self)
-		self.comboPoints = GetComboPoints('player', 'target')
-		for i = 1, 5 do
-			local bar = self.powers[i].frame
-			bar:SetValue(self.comboPoints)
-		end			
-	end,
 })
