@@ -51,7 +51,8 @@ ns.PowerDisplay = O3.Class:extend({
 					self.regenBar.frame:SetStatusBarColor(0,1,1,1)
 				end
 			end
-
+		elseif self.secondaryPower and powerType == self.secondaryPower.powerString then
+			self.secondaryPower:UNIT_POWER()
 		end
 	end,
 	UNIT_POWER = function (self, unit, powerType)
@@ -97,8 +98,12 @@ ns.PowerDisplay = O3.Class:extend({
 			self.auraWatchers[i]:UNIT_AURA()
 		end
 	end,
-	UPDATE_SHAPESHIFT_FORM = function (self)
+	reset = function (self)
+		self:UNIT_AURA()
 		self:UNIT_MAXPOWER('player', self.powerType)
+		if (self.secondaryPower) then
+			self.secondaryPower:UNIT_MAXPOWER()
+		end
 	end,
 	RUNE_TYPE_UPDATE = function (self)
 		self.runes:RUNE_TYPE_UPDATE()
@@ -120,6 +125,7 @@ ns.PowerDisplay = O3.Class:extend({
 			end,
 		})
 		self.frame = self.panel.frame
+		self.UPDATE_SHAPESHIFT_FORM = self.reset
 		O3.EventHandler:mixin(self)
 		self:initEventHandler()
 		self:registerNormalEvent('PLAYER_ENTERING_WORLD')

@@ -40,6 +40,7 @@ ns.Play = O3:module({
 			control = self:getSpecControl(self.specId)
 			if (control) then
 				control:enable()
+				control:reset()
 			end
 		end
 	end,

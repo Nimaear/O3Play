@@ -21,6 +21,7 @@ ns.SecondaryPowerDisplay = O3.UI.Panel:extend({
 		[SPELL_POWER_DEMONIC_FURY] = 'DEMONIC_FURY',
 		[SPELL_POWER_BURNING_EMBERS] = 'BURNING_EMBERS',
 		[SPELL_POWER_SOUL_SHARDS] = 'SOUL_SHARDS',
+		[SPELL_POWER_ECLIPSE] = 'ECLIPSE',
 	},
 	powerString = nil,
 	powerColor = {1, 1, 1, 1},
@@ -112,7 +113,7 @@ ns.DemonicFuryDisplay = ns.SecondaryPowerDisplay:extend({
 			color = self.color,
 			width = self.width,
 			height = self.height,
-			min = 1,
+			min = 0,
 			max = 1000,
 		})
 	end,
@@ -124,4 +125,72 @@ ns.EmberDisplay = ns.SecondaryPowerDisplay:extend({
 	color = {0.9, 0.45, 0.1, 1},
 	powerType = SPELL_POWER_BURNING_EMBERS,
 	detailed = true,
+})
+
+local mathAbs = math.abs
+local mathFloor = math.floor
+
+ns.EclipseDisplay = ns.SecondaryPowerDisplay:extend({
+	moonColor = {0.2, 0.2, 0.8, 1},
+	sunColor = {0.8, 0.4, 0.2, 1},
+	powerType = SPELL_POWER_ECLIPSE,
+	UNIT_POWER = function (self)
+		local eclipse = UnitPower('player', self.powerType)
+		local moonWidth = mathFloor(((100+eclipse)/200)*self.width)+1
+		if (moonWidth == 0) then
+			self.moon:hide()
+			self.sun.frame:SetWidth(self.width)
+		elseif moonWidth >= self.width then
+			self.moon.frame:SetWidth(self.width)
+			self.sun:hide()
+		else
+			self.moon:show()
+			self.sun:show()
+			self.moon.frame:SetWidth(moonWidth)
+			self.sun.frame:SetWidth(self.width-moonWidth+1)
+		end
+		self.text:SetText(math.abs(eclipse))
+	end,
+	UNIT_MAXPOWER = function (self)
+		self:UNIT_POWER()
+	end,
+	style = function (self)
+	end,	
+	createRegions = function (self)
+		self.moon = O3.UI.StatusBar:instance({
+			offset = {0,nil,0,0},
+			parentFrame = self.frame,
+			color = self.moonColor,
+			texture = O3.Media:statusBar('Stone'),
+			width = self.width,
+			height = self.height,
+			min = 0,
+			max = 100,
+		})
+		self.moon.frame:SetValue(100)
+		self.moon.frame:SetFrameLevel(1)
+		self.sun = O3.UI.StatusBar:instance({
+			offset = {nil,0,0,0},
+			parentFrame = self.frame,
+			color = self.sunColor,
+			texture = O3.Media:statusBar('Stone'),
+			width = self.width,
+			height = self.height,
+			min = 0,
+			max = 100,
+		})
+		self.sun.frame:SetValue(100)
+		self.sun.frame:SetFrameLevel(1)
+		self.frame:SetFrameLevel(2)
+		--self.moon:point('RIGHT', self.sun.frame, 'LEFT', 1, 0)
+		self.text = self:createFontString({
+			offset = {4, 4, 0, 0},
+			color = {0.9, 0.9, 0.9, 1},
+			layer = 'BORDER',
+			subLayer = 7,
+			--shadowColor = {0.5, 0.5, 0.5, 1},
+			shadowOffset = {1, -1},
+			justifyH = 'CENTER',
+		})
+	end,
 })
