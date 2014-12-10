@@ -139,6 +139,12 @@ local energy = ns.PowerDisplay:instance({
 		bloodTaps:point('TOP', self.frame, 'BOTTOM', 0, 1)
 		self:registerUnitAuraWatcher(bloodTaps)
 		self.frame:SetPoint('TOP', UIParent, 'CENTER', 0, self.horizontalOffset)
+
+		local dotWatcher = ns.DotWatcher:instance({
+			parentFrame = self.frame,
+		})
+		dotWatcher:point('BOTTOM', self.runes.frame, 'TOP', 0, 20)
+
 	end,
 	PLAYER_ENTERING_WORLD = function (self)
 		self:create()
