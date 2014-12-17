@@ -142,6 +142,11 @@ local energy = ns.PowerDisplay:instance({
 
 		local dotWatcher = ns.DotWatcher:instance({
 			parentFrame = self.frame,
+		auras = {
+			{55095, 'target', 'PLAYER|HARMFUL', true, true},
+			{55078, 'target', 'PLAYER|HARMFUL', true, true},
+		},
+
 		})
 		dotWatcher:point('BOTTOM', self.runes.frame, 'TOP', 0, 20)
 

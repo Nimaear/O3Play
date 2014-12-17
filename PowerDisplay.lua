@@ -193,8 +193,8 @@ local DotIcon = O3.UI.Panel:extend({
 			-- height = 1,
 		})
 		self.icon = self:createTexture({
-			layer = 'BORDER',
-			subLayer = 2,
+			layer = 'BACKGROUND',
+			subLayer = 1,
 			file = self.icon,
 			coords = self.coords,
 			tile = false,
@@ -236,17 +236,34 @@ local DotIcon = O3.UI.Panel:extend({
 			justifyH = 'CENTER',
 		})		
 		self.icon:SetDesaturated(true)
+
+		self.cooldown = CreateFrame("Cooldown", nil, self.frame, "CooldownFrameTemplate")
+		self.cooldown:SetDrawEdge(false)
+		self.cooldown:SetDrawSwipe(true)
+		self.cooldown:ClearAllPoints()
+		self.cooldown:SetFrameLevel(self.frame:GetFrameLevel()+1)
+
+		self.cooldown:SetAllPoints(self.icon)
+
 	end,
 	desaturate = function (self, desaturate)
 		self.icon:SetDesaturated(desaturate)
 		if (desaturate) then
+--			self.cooldown:Hide()
 			self.text:SetText('')
 			self.strength:SetText('')
 			self.cacheKey = nil
+			self.cooldown:SetCooldown(GetTime()-1,1)
+		else
+--			self.cooldown:Show()
+			--self.cooldown:SetCooldown(GetTime()-1,1)
 		end
 	end,
 	setTexture = function (self, texture)
 		self.icon:SetTexture(texture)
+	end,
+	setCooldown = function (self, duration, expires)
+		self.cooldown:SetCooldown(expires-duration, duration)
 	end,
 })
 
@@ -254,8 +271,7 @@ ns.DotWatcher = O3.UI.Panel:extend({
 	enabled = true,
 	width = 36,
 	height = 36,
-	dots = {
-		55095, 55078
+	auras = {
 	},
 	icons = {},
 	cache = {},
@@ -276,12 +292,13 @@ ns.DotWatcher = O3.UI.Panel:extend({
 	reset = function (self)
 	end,
 	init = function (self)
-		for i=1,#self.dots do
-			O3.AuraWatcher:register(self.dots[i], self)
+		for i=1,#self.auras do
+			O3.AuraWatcher:register(self.auras[i][1], self)
 		end
 		self.panel = O3.UI.Panel:instance({
 			width = self.width,
 			height = self.height,
+			parentFrame = self.parentFrame,
 		})
 		self.frame = self.panel.frame
 		O3.EventHandler:mixin(self)
@@ -299,34 +316,51 @@ ns.DotWatcher = O3.UI.Panel:extend({
 		self:PLAYER_TARGET_CHANGED()
 	end,
 	create = function (self)
-		local dotCount = #self.dots
-		self:setWidth(dotCount*36+dotCount*3)
-		for i = 1, dotCount do
+		local aurasCount = #self.auras
+		for i = 1, aurasCount do
+			local aura = self.auras[i]
 			local icon = DotIcon:instance({
 				parentFrame = self.frame,
 				guid = nil,
-				offset = {3 + (i-1)*32, nil, nil, nil},
+				spellId = aura[1],
+				unitId = aura[2],
+				calculateDamage = aura[4] or false,
+				calculateStrength = aura[5] or false,
+				filter = aura[3] or "PLAYER|HARMFUL",
+				offset = {-1+(i-1)*33, nil, nil, nil},
 			})
-			local name, rank, texture = GetSpellInfo(self.dots[i])
+			local name, rank, texture = GetSpellInfo(aura[1])
 			icon:setTexture(texture)
-			self.icons[self.dots[i]] = icon
+			icon:desaturate(true)
+			self.icons[aura[1]..'-'..aura[2]] = icon
 		end
+
+		self:setWidth(aurasCount*33-1)
+
 	end,
 	refresh = function (self, appliedSpellId, foundUnitId, destGUID, destName, casterIsPlayer)
 		self.cache[destGUID..appliedSpellId] = self.ap
-		if (foundUnitId ~= 'target' or not casterIsPlayer) then
+		if (not foundUnitId) then
 			return
 		end
-		self:searchForAura(appliedSpellId, foundUnitId, destGUID)
+		local iconKey = appliedSpellId..'-'..foundUnitId
+		if (not self.icons[iconKey]) then
+			return
+		end
+		self:searchForAura(appliedSpellId, foundUnitId, destGUID, self.icons[iconKey])
 		self:UNIT_AURA('player')		
 	end,
 	remove = function (self, spellId, foundUnitId, destGUID, destName, casterIsPlayer)
 		self.cache[destGUID..spellId] = nil
-		if (foundUnitId ~= 'target' or not casterIsPlayer) then
+		if (not foundUnitId) then
 			return
 		end
-		if (self.icons[spellId]) then
-			self.icons[spellId]:desaturate(true)
+		if (foundUnitId) then
+			local iconKey = spellId..'-'..foundUnitId
+			if (not self.icons[iconKey]) then
+				return
+			end
+			self.icons[iconKey]:desaturate(true)
 		end
 	end,
 	smartValue = function(self, val)
@@ -340,17 +374,25 @@ ns.DotWatcher = O3.UI.Panel:extend({
 	end,	
 	apply = function (self, appliedSpellId, foundUnitId, destGUID, destName, casterIsPlayer)
 		self.cache[destGUID..appliedSpellId] = self.ap
-		if (foundUnitId ~= 'target' or not casterIsPlayer) then
+		if (not foundUnitId) then
 			return
 		end
-		self:searchForAura(appliedSpellId, foundUnitId, destGUID)
+		local iconKey = appliedSpellId..'-'..foundUnitId
+		if (not self.icons[iconKey]) then
+			return
+		end
+		self:searchForAura(appliedSpellId, foundUnitId, destGUID, self.icons[iconKey])
 		self:UNIT_AURA('player')
 	end,
 	periodicDamage = function (self, appliedSpellId, foundUnitId, destGUID, destName, casterIsPlayer)
-		if (foundUnitId ~= 'target' or not casterIsPlayer) then
+		if (not foundUnitId) then
 			return
 		end
-		self:searchForAura(appliedSpellId, foundUnitId, destGUID)
+		local iconKey = appliedSpellId..'-'..foundUnitId
+		if (not self.icons[iconKey]) then
+			return
+		end
+		self:searchForAura(appliedSpellId, foundUnitId, destGUID, self.icons[iconKey])
 		self:UNIT_AURA('player')
 	end,
 	PLAYER_ENTERING_WORLD = function (self)
@@ -364,10 +406,9 @@ ns.DotWatcher = O3.UI.Panel:extend({
 		end
 	end,
 	refreshStrength = function (self)
-		for i = 1, #self.dots do
-			local spellId = self.dots[i]
-			local icon = self.icons[spellId]
-			if (icon.cacheKey and self.cache[icon.cacheKey]) then
+		for iconKey, icon in pairs(self.icons) do
+			local spellId = icon.spellId
+			if (icon.calculateStrength and icon.cacheKey and self.cache[icon.cacheKey]) then
 				local strength = (self.cache[icon.cacheKey]*100)/self.ap
 				if (strength <= 100) then
 					icon.strength:SetTextColor(0.1, 0.9, 0.1, 1)
@@ -376,19 +417,23 @@ ns.DotWatcher = O3.UI.Panel:extend({
 				end
 				icon.strength:SetText(string.format('%d',strength))
 			else
-				icon.strength:SetText('?')
+				icon.strength:SetText('')
 			end
 		end	
 	end,
 	PLAYER_TARGET_CHANGED = function (self)
 		if (UnitExists('target')) then
-			for i = 1, #self.dots do
-				self:searchForAura(self.dots[i], 'target', UnitGUID('target'))
+			for iconKey, icon in pairs(self.icons) do
+				if (icon.unitId == 'target') then
+					self:searchForAura(icon.spellId, 'target', UnitGUID('target'), icon)
+				end
 			end
 			self:refreshStrength()
 		else
-			for i = 1, #self.dots do
-				self.icons[self.dots[i]]:desaturate(true)
+			for iconKey, icon in pairs(self.icons) do
+				if (icon.unitId == 'target') then
+					icon:desaturate(true)
+				end
 			end
 		end
 	end,
@@ -398,45 +443,53 @@ ns.DotWatcher = O3.UI.Panel:extend({
 	UNIT_AURA = function (self, unitId)
 		if unitId == 'player' then
 			self.ap = UnitAttackPower('player')
-			self:refreshStrength()
 		end
 	end,
-	searchForAura = function (self, appliedSpellId, foundUnitId, destGUID)
-		if (not self.icons[appliedSpellId]) then
+	searchForAura = function (self, appliedSpellId, foundUnitId, destGUID, icon)
+		if (not icon) then
 			return
 		end
-		self.icons[appliedSpellId].cacheKey = destGUID..appliedSpellId
-		local filter = "PLAYER|HARMFUL"
+		icon.cacheKey = destGUID..appliedSpellId
 		local foundIndex = nil
+		local filter = icon.filter
+		local duration, expires
 		for i = 1, 40 do
-			local name, rank, icon, count, dispelType, duration, expires, caster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitAura(foundUnitId, i, filter)
+			local name, rank, icon, count, dispelType, _duration, _expires, caster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitAura(foundUnitId, i, filter)
 			if not name then
 				break
 			end
 			if spellId == appliedSpellId then
 				foundIndex = i
+				duration = _duration
+				expires = _expires
 				break
 			end
 		end
 		if foundIndex then
-			self.scanTooltip:ClearLines()
-			self.scanTooltip:SetUnitAura(foundUnitId, foundIndex, filter)
+			if (icon.calculateDamage) then
+				self.scanTooltip:ClearLines()
+				self.scanTooltip:SetUnitAura(foundUnitId, foundIndex, filter)
 
-			-- Get the global name of the tooltip object:
-			local name = self.scanTooltip:GetName()
+				-- Get the global name of the tooltip object:
+				local name = self.scanTooltip:GetName()
 
-			-- Loop over each line in the tooltip:
-			for i = 1, self.scanTooltip:NumLines() do
-			    -- Get a reference to the left-aligned text on this line:
-			    local left = _G[name .. "TextLeft" .. i]:GetText()
-			    local damage = string.match(left, "Suffering (%d+) .*")
-			    if (damage and self.icons[appliedSpellId]) then
-			    	self.icons[appliedSpellId]:desaturate(false)
-			    	self.icons[appliedSpellId].text:SetText(self:smartValue(tonumber(damage)))
-			    end
+				-- Loop over each line in the tooltip:
+				for i = 1, self.scanTooltip:NumLines() do
+					-- Get a reference to the left-aligned text on this line:
+					local left = _G[name .. "TextLeft" .. i]:GetText()
+					local damage = string.match(left, "Suffering (%d+) .*")
+					if (damage) then
+						icon:setCooldown(duration, expires)
+						icon:desaturate(false)
+						icon.text:SetText(self:smartValue(tonumber(damage)))
+					end
+				end
+			else
+				icon:setCooldown(duration, expires)
+				icon:desaturate(false)				
 			end
 		else
-			self.icons[appliedSpellId]:desaturate(true)
+			icon:desaturate(true)
 		end
 		self:refreshStrength()
 	end,
