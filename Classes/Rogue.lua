@@ -39,9 +39,18 @@ ns.Play:registerControl(ns.PowerDisplay:extend({
 		local dotWatcher = ns.DotWatcher:instance({
 			parentFrame = self.frame,
 			auras = {
-				{5171, 'player', 'PLAYER|HELPFUL', false, false},
-				{91021, 'target', 'PLAYER|HARMFUL', false, false},
-				{1943, 'target', 'PLAYER|HARMFUL', true, true},
+				player = {
+					['PLAYER|HELPFUL'] = {
+						[5171] = {false, false},
+					}
+				},
+				target = {
+					['PLAYER|HARMFUL'] = {
+						[91021] = {false, false},
+						[16511] = {true, false, 'Suffering (%d+) .*'},
+						[1943] = {true, false, 'Suffering (%d+) .*'},
+					}
+				}
 			},
 		})
 		dotWatcher:point('BOTTOM', self.secondaryPower.frame, 'TOP', 0, 20)		
@@ -72,7 +81,7 @@ ns.Play:registerControl(ns.PowerDisplay:extend({
 
 		local anticipation = ns.BuffStackDisplay:instance({
 			parentFrame = self.frame,
-			spellId = A_ANTICIPATION,
+		spellId = A_ANTICIPATION,
 			maxAmount = 5,
 		})
 
@@ -83,9 +92,18 @@ ns.Play:registerControl(ns.PowerDisplay:extend({
 		local dotWatcher = ns.DotWatcher:instance({
 			parentFrame = self.frame,
 			auras = {
-				{5171, 'player', 'PLAYER|HELPFUL', false, false},
-				{84617, 'target', 'PLAYER|HARMFUL', false, false},
+				player = {
+					['PLAYER|HELPFUL'] = {
+						[5171] = {false, false},
+					}
+				},
+				target = {
+					['PLAYER|HARMFUL'] = {
+						[84617] = {false, false},
+					}
+				}
 			},
+
 		})
 		dotWatcher:point('BOTTOM', self.secondaryPower.frame, 'TOP', 0, 20)		
 	end,

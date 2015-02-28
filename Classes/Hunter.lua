@@ -8,6 +8,7 @@ end
 local GetTime = GetTime
 local A_FRENZY = 19615
 local A_THRILLOFTHEHUNT = 34720
+local A_LOCKANDLOAD = 168980
 
 local BEAST_MASTERY = 1
 local MARKSMAN = 2
@@ -44,6 +45,15 @@ ns.Play:registerControl(ns.PowerDisplay:extend({
 	specId = SURVIVAL,
 	powerType = 'FOCUS',
 	postCreate = function (self)
+
+		local lockAndLoad = ns.BuffStackDisplay:instance({
+			parentFrame = self.frame,
+			spellId = A_LOCKANDLOAD,
+			color = {0.9, 0.9, 0.1},
+			maxAmount = 2,
+		})
+		lockAndLoad:point('BOTTOM', self.frame, 'TOP', 0, -1)
+		self:registerUnitAuraWatcher(lockAndLoad)
 
 		local thrill = ns.BuffStackDisplay:instance({
 			parentFrame = self.frame,

@@ -15,6 +15,7 @@ BuffStackDisplay.lua
 Play.lua
 SpellBar.lua
 ProcIcon.lua
+AuraIcons.lua
 Classes\Monk.lua
 Classes\Rogue.lua
 Classes\Warlock.lua
@@ -24,3 +25,4 @@ Classes\Hunter.lua
 Classes\Paladin.lua
 Classes\Shaman.lua
 Classes\Druid.lua
+Classes\Warrior.lua
